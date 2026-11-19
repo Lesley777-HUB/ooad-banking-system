@@ -26,24 +26,12 @@ public class InvestmentAccount extends Account
 
     @Override
     public void creditMonthlyInterest() {
-        double interest = calculateMonthlyInterest();
-
-        if (interest > 0) {
-            deposit(interest);
-        }
+        applyInterestRate(monthlyInterestRate);
     }
 
     @Override
     public void withdraw(double amount) {
-        validateAmount(amount);
-
-        if (amount > balance) {
-            throw new IllegalArgumentException(
-                    "Insufficient funds."
-            );
-        }
-
-        balance -= amount;
+        withdrawFunds(amount);
     }
 
     @Override

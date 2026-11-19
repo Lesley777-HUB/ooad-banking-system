@@ -28,18 +28,10 @@ public class ChequeAccount extends Account implements Withdrawable {
         owner.addAccount(this);
     }
 
-    @Override
-    public void withdraw(double amount) {
-        validateAmount(amount);
-
-        if (amount > balance) {
-            throw new IllegalArgumentException(
-                    "Insufficient funds."
-            );
-        }
-
-        balance -= amount;
-    }
+       @Override
+public void withdraw(double amount) {
+    withdrawFunds(amount);
+}
 
     @Override
     public String getAccountDetails() {

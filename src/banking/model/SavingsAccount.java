@@ -15,15 +15,12 @@ public class SavingsAccount extends Account
     public double calculateMonthlyInterest() {
         return balance * monthlyInterestRate;
     }
-
     @Override
     public void creditMonthlyInterest() {
-        double interest = calculateMonthlyInterest();
-
-        if (interest > 0) {
-            deposit(interest);
-        }
+        applyInterestRate(monthlyInterestRate);
     }
+    
+    
 
     @Override
     public String getAccountDetails() {
