@@ -111,4 +111,83 @@ public class BankingService {
     public void save(Account account) throws SQLException {
         transactionDAO.saveAccountState(account);
     }
+    public void openAccount(String customerId, String accountType,
+                            String accountNumber, String branch,
+                            double openingDeposit) throws SQLException {
+        Customer owner = customerDAO.findById(customerId);
+
+        if (owner == null) {
+            throw new IllegalArgumentException("Customer not found.");
+        }
+
+        Account account = switch (accountType) {
+            case "Savings" -> new SavingsAccount(
+                    accountNumber, openingDeposit, branch, owner);
+            case "Investment" -> new InvestmentAccount(
+                    accountNumber, openingDeposit, branch, owner);
+            case "Cheque" -> new ChequeAccount(
+                    accountNumber, openingDeposit, branch, owner);
+            default -> throw new IllegalArgumentException(
+                    "Select a valid account type.");
+        };
+
+        try (java.sql.Connection connection = Database.getConnection()) {
+            connection.setAutoCommit(false);
+
+            try {
+                String sql = """
+                    INSERT INTO accounts (
+                        account_number, account_type, balance,
+                        branch, customer_id,
+                        employer_name, employer_address
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """;
+
+                try (java.sql.PreparedStatement statement =
+                             connection.prepareStatement(sql)) {
+                    statement.setString(1, account.getAccountNumber());
+                    statement.setString(2, accountType);
+                    statement.setDouble(3, account.getBalance());
+                    statement.setString(4, account.getBranch());
+                    statement.setString(5, customerId);
+
+                    if (account instanceof ChequeAccount cheque) {
+                        statement.setString(6, cheque.getEmployerName());
+                        statement.setString(7, cheque.getEmployerAddress());
+                    } else {
+                        statement.setNull(6, java.sql.Types.VARCHAR);
+                        statement.setNull(7, java.sql.Types.VARCHAR);
+                    }
+
+                    statement.executeUpdate();
+                }
+
+                for (Transaction transaction : account.getTransactions()) {
+                    try (java.sql.PreparedStatement statement =
+                                 connection.prepareStatement("""
+                                 INSERT INTO transactions (
+                                     transaction_id, amount,
+                                     transaction_date, transaction_type,
+                                     account_number
+                                 ) VALUES (?, ?, ?, ?, ?)
+                                 """)) {
+                        statement.setString(1,
+                                transaction.getTransactionId());
+                        statement.setDouble(2, transaction.getAmount());
+                        statement.setTimestamp(3, new java.sql.Timestamp(
+                                transaction.getTransactionDate().getTime()));
+                        statement.setString(4,
+                                transaction.getTransactionType());
+                        statement.setString(5, account.getAccountNumber());
+                        statement.executeUpdate();
+                    }
+                }
+
+                connection.commit();
+            } catch (SQLException | RuntimeException e) {
+                connection.rollback();
+                throw e;
+            }
+        }
+    }
 }

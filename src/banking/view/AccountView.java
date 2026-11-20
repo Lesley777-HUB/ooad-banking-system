@@ -14,7 +14,8 @@ public class AccountView extends BorderPane {
     private final Label balanceLabel = new Label("Balance: —");
     private final Label messageLabel = new Label();
     private final TextArea historyArea = new TextArea();
-
+    private final Button openAccountButton = new Button("Open Account");
+    
     public AccountView() {
         setPadding(new Insets(24));
         setStyle("-fx-background-color: #eef2f7;");
@@ -25,7 +26,7 @@ public class AccountView extends BorderPane {
                 + "-fx-text-fill: #17365d;"
         );
 
-        HBox header = new HBox(20, title, logoutButton);
+        HBox header = new HBox(20, title, openAccountButton, logoutButton);
         header.setPadding(new Insets(0, 0, 24, 0));
         setTop(header);
 
@@ -94,6 +95,9 @@ public class AccountView extends BorderPane {
 
     public void showMessage(String message) {
         messageLabel.setText(message);
+    }
+        public Button getOpenAccountButton() {
+        return openAccountButton;
     }
 }
  

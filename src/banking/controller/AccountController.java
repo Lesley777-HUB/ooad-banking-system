@@ -12,12 +12,14 @@ import java.util.Locale;
 
 public class AccountController {
     private final AccountView view;
-    private final List<Account> accounts;
+    private List<Account> accounts;
 
     public AccountController(AccountView view, Customer customer,
                              Runnable onLogout) {
         this.view = view;
         this.accounts = customer.getAccounts();
+                view.getOpenAccountButton().setOnAction(event ->
+                openAccount(customer.getCustomerId()));
 
         for (Account account : accounts) {
             view.getAccountSelector().getItems().add(
@@ -171,5 +173,64 @@ public class AccountController {
         }
 
         view.showHistory(history.toString());
+    }
+        private void openAccount(String customerId) {
+        banking.view.OpenAccountView dialog =
+                new banking.view.OpenAccountView();
+        dialog.initOwner(view.getScene().getWindow());
+
+        dialog.showAndWait().ifPresent(request -> {
+            banking.service.BankingService service =
+                    new banking.service.BankingService();
+
+            try {
+                double openingDeposit =
+                        Double.parseDouble(request.openingDeposit());
+
+                service.openAccount(
+                        customerId,
+                        request.accountType(),
+                        request.accountNumber(),
+                        request.branch(),
+                        openingDeposit
+                );
+            } catch (NumberFormatException e) {
+                view.showMessage("Enter a valid opening deposit.");
+                return;
+            } catch (IllegalArgumentException e) {
+                view.showMessage(e.getMessage());
+                return;
+            } catch (java.sql.SQLException e) {
+                view.showMessage(
+                        "Account creation failed. Check for a duplicate "
+                        + "account number or database error."
+                );
+                e.printStackTrace();
+                return;
+            }
+
+            try {
+                accounts = service.loadCustomer(customerId).getAccounts();
+
+                view.getAccountSelector().getItems().clear();
+
+                for (Account account : accounts) {
+                    view.getAccountSelector().getItems().add(
+                            account.getAccountNumber());
+                }
+
+                view.getAccountSelector().getSelectionModel()
+                        .select(request.accountNumber());
+
+                refresh();
+                view.showMessage("Account created and saved.");
+            } catch (java.sql.SQLException | IllegalArgumentException e) {
+                view.showMessage(
+                        "Account was created, but refreshing failed. "
+                        + "Restart the app to reload it."
+                );
+                e.printStackTrace();
+            }
+        });
     }
 }
