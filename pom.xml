@@ -14,11 +14,17 @@
         <javafx.version>21.0.8</javafx.version>
     </properties>
 
-    <dependencies>
+        <dependencies>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
             <version>${javafx.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.3.232</version>
         </dependency>
     </dependencies>
 

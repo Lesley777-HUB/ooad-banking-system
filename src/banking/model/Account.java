@@ -132,4 +132,35 @@ public abstract class Account {
     }
 
     public abstract String getAccountDetails();
+        public final void restoreState(double savedBalance,
+                                   List<Transaction> savedTransactions) {
+        if (!Double.isFinite(savedBalance) || savedBalance < 0) {
+            throw new IllegalArgumentException(
+                    "Saved balance is invalid.");
+        }
+
+        if (savedTransactions == null) {
+            throw new IllegalArgumentException(
+                    "Saved transaction list is required.");
+        }
+
+        List<Transaction> copy = new ArrayList<>(savedTransactions);
+        java.util.Set<String> ids = new java.util.HashSet<>();
+
+        for (Transaction transaction : copy) {
+            if (transaction == null || transaction.getAccount() != this) {
+                throw new IllegalArgumentException(
+                        "Saved transaction belongs to another account.");
+            }
+
+            if (!ids.add(transaction.getTransactionId())) {
+                throw new IllegalArgumentException(
+                        "Duplicate saved transaction.");
+            }
+        }
+
+        balance = savedBalance;
+        transactions.clear();
+        transactions.addAll(copy);
+    }
 }

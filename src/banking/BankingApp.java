@@ -2,10 +2,8 @@ package banking;
 
 import banking.controller.AccountController;
 import banking.controller.LoginController;
-import banking.model.ChequeAccount;
-import banking.model.IndividualCustomer;
-import banking.model.InvestmentAccount;
-import banking.model.SavingsAccount;
+import banking.model.Customer;
+import banking.service.BankingService;
 import banking.view.AccountView;
 import banking.view.LoginView;
 
@@ -15,21 +13,15 @@ import javafx.stage.Stage;
 
 public class BankingApp extends Application {
     private Stage stage;
-    private IndividualCustomer customer;
+    private Customer customer;
 
     @Override
-    public void start(Stage stage) {
+    public void start(Stage stage) throws Exception {
         this.stage = stage;
 
-        customer = new IndividualCustomer(
-                "C001", "Gaborone", "71234567",
-                "Alex", "Dube", "Employed",
-                "Example Company", "Main Road, Gaborone"
-        );
-
-        new SavingsAccount("S001", 1000.00, "Main Branch", customer);
-        new InvestmentAccount("I001", 500.00, "Main Branch", customer);
-        new ChequeAccount("CH001", 1000.00, "Main Branch", customer);
+        BankingService service = new BankingService();
+        service.initialize();
+        customer = service.loadCustomer("C001");
 
         stage.setTitle("Banking Management System");
         stage.setMinWidth(700);

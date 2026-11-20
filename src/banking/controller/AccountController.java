@@ -102,17 +102,41 @@ public class AccountController {
         }
     }
 
-    private void perform(Runnable operation) {
+        private void perform(Runnable operation) {
+        Account account;
+
+        try {
+            account = selectedAccount();
+        } catch (IllegalArgumentException e) {
+            view.showMessage(e.getMessage());
+            return;
+        }
+
+        double oldBalance = account.getBalance();
+        java.util.List<Transaction> oldHistory =
+                new java.util.ArrayList<>(account.getTransactions());
+
         try {
             operation.run();
+
+            new banking.service.BankingService().save(account);
+
             refresh();
             view.clearAmount();
-            view.showMessage("Operation completed successfully.");
+            view.showMessage("Operation saved successfully.");
+        } catch (java.sql.SQLException e) {
+            account.restoreState(oldBalance, oldHistory);
+            refresh();
+            view.showMessage(
+                    "Database save failed. The operation was cancelled."
+            );
+            e.printStackTrace();
         } catch (IllegalArgumentException e) {
+            account.restoreState(oldBalance, oldHistory);
+            refresh();
             view.showMessage(e.getMessage());
         }
     }
-
     private void refresh() {
         boolean hasAccount = view.getAccountSelector()
                 .getSelectionModel().getSelectedIndex() >= 0;
