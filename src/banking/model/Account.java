@@ -86,7 +86,7 @@ public abstract class Account {
         transactions.add(transaction);
     }
 
-    public void applyInterestRate(double rate) {
+       public void applyInterestRate(double rate) {
         if (!(this instanceof InterestBearing)) {
             throw new IllegalArgumentException(
                     "This account does not earn interest.");
@@ -97,13 +97,35 @@ public abstract class Account {
                     "Interest rate must be finite and non-negative.");
         }
 
+        java.time.ZoneId bankZone =
+                java.time.ZoneId.of("Africa/Gaborone");
+
+        java.time.YearMonth currentMonth =
+                java.time.YearMonth.now(bankZone);
+
+        for (Transaction transaction : transactions) {
+            if ("INTEREST".equals(transaction.getTransactionType())) {
+                java.time.YearMonth paidMonth =
+                        java.time.YearMonth.from(
+                                transaction.getTransactionDate()
+                                        .toInstant()
+                                        .atZone(bankZone)
+                        );
+
+                if (currentMonth.equals(paidMonth)) {
+                    throw new IllegalArgumentException(
+                            "Interest has already been credited "
+                            + "for this month.");
+                }
+            }
+        }
+
         double interest = balance * rate;
 
         if (interest > 0) {
             creditFunds(interest, "INTEREST");
         }
     }
-
     protected void validateAmount(double amount) {
         if (!Double.isFinite(amount) || amount <= 0) {
             throw new IllegalArgumentException(
