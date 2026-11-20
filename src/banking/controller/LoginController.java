@@ -13,11 +13,11 @@ public class LoginController {
                 return;
             }
 
-            if ("demo".equals(username) && "Demo123!".equals(password)) {
+            if ("demo".equals(username) && "demo123".equals(password)) {
                 onSuccess.run();
             } else {
                 view.showMessage("Incorrect username or password.");
             }
         });
     }
-}
+}  
